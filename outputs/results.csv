@@ -1,0 +1,2 @@
+image_path,detected_text,raw_ocr_text,ocr_confidence,detection_confidence,status,crop_path
+/kaggle/input/datasets/mehmeteminduran/ornek-arac/ornek_arac.jpg,34B5592,34B5592,0.8989,0.7918,basarili,/kaggle/working/plaka_demo_outputs/ornek_arac_plate_crop.jpg
