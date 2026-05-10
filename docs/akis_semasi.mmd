@@ -1,0 +1,18 @@
+flowchart TD
+    A["Girdi: Arac fotografi"] --> B{"Gorsel dosyasi okunabiliyor mu?"}
+    B -- "Hayir" --> C["Hata mesaji: gorsel bulunamadi veya okunamadi"]
+    B -- "Evet" --> D["YOLO11 plaka tespit modeli yuklenir"]
+    D --> E["Gorselde plaka kutusu tahmin edilir"]
+    E --> F{"Plaka tespit edildi mi?"}
+    F -- "Hayir" --> G["Cikti gorseline tespit edilemedi notu yazilir"]
+    F -- "Evet" --> H["En yuksek guvenli plaka bolgesi kirpilir"]
+    H --> I["On isleme: gri ton, kontrast artirma, esikleme"]
+    I --> J["EasyOCR ile plaka karakterleri okunur"]
+    J --> K["Metin temizlenir ve guven skoru hesaplanir"]
+    K --> L{"OCR guveni yeterli mi?"}
+    L -- "Hayir" --> M["Sonuc dusuk guven olarak isaretlenir"]
+    L -- "Evet" --> N["Sonuc basarili olarak isaretlenir"]
+    M --> O["Isaretlenmis gorsel, kirpim ve CSV kaydedilir"]
+    N --> O
+    G --> O
+
