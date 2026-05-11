@@ -12,9 +12,7 @@ YOLO yaklaşımı, nesne tespitini tek bir sinir ağı geçişinde gerçekleşti
 
 ## 3. GitHub Linki
 
-GitHub public repo linki: `https://github.com/kullanici/plaka-tespit-okuma`
-
-Not: Bu link teslimden önce gerçek public GitHub repo linkiyle değiştirilecektir.
+GitHub public repo linki: `https://github.com/mhmtmndrn/Derin-Ogrenme-Tabanli-Arac-Plaka-Tespit-Ve-Tanima-Sistemi`
 
 ## 4. Yöntem
 

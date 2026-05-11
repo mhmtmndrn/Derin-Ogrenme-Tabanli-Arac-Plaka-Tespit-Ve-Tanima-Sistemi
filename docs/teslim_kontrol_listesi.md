@@ -2,7 +2,7 @@
 
 - [x] Proje adi belirlendi.
 - [x] Proje konusu yazildi.
-- [x] GitHub linki icin yer tutucu eklendi.
+- [x] Gercek GitHub repo linki rapora eklendi.
 - [x] Yontem aciklandi.
 - [x] Algoritma akis semasi hazirlandi.
 - [x] Uygulama tasarimi yazildi.
