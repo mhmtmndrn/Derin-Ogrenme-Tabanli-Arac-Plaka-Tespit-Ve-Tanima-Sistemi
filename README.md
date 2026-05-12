@@ -55,8 +55,6 @@ pip install -r requirements.txt
 python src/main.py --image samples/ornek_arac.jpg --weights models/best.pt --output outputs/demo_result.jpg --csv outputs/results.csv
 ```
 
-Not: Bu bilgisayardaki mevcut terminalde `python` ve `pip` komutlari gorunmedigi icin yerel test burada calistirilamadi. Colab not defteri egitim icin ana calisma ortami olacak.
-
 ## Cikti
 
 Program basarili calistiginda sunlari uretir:
@@ -65,13 +63,3 @@ Program basarili calistiginda sunlari uretir:
 - Kirpilmis plaka gorseli
 - Okunan plaka metni
 - Tespit/OCR guven skorlarini iceren CSV tablo
-
-## Rapor
-
-Raporun Word/PDF'ye aktarilmaya hazir hali `docs/rapor.md` dosyasindadir. Word belgesi uretmek icin:
-
-```powershell
-node tools/create_report_docx.js
-```
-
-Bu komut `docs/rapor.docx` dosyasini olusturur.
