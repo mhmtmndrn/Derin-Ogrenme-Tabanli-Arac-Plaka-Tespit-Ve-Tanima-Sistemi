@@ -34,29 +34,7 @@ Projenin çalışma adımları şu şekildedir:
 
 ## 5. Algoritma Akış Şeması
 
-Metinsel akış şeması özeti:
-
-`Araç fotoğrafı -> Görsel kontrolü -> YOLO11n ile plaka tespiti -> Plaka kırpma -> Görüntü ön işleme -> EasyOCR ile okuma -> Metin temizleme ve güven skoru -> Görsel/CSV çıktı`
-
-```mermaid
-flowchart TD
-    A["Girdi: Araç fotoğrafı"] --> B{"Görsel dosyası okunabiliyor mu?"}
-    B -- "Hayır" --> C["Hata mesajı: görsel bulunamadı veya okunamadı"]
-    B -- "Evet" --> D["YOLO11 plaka tespit modeli yüklenir"]
-    D --> E["Görselde plaka kutusu tahmin edilir"]
-    E --> F{"Plaka tespit edildi mi?"}
-    F -- "Hayır" --> G["Çıktı görseline tespit edilemedi notu yazılır"]
-    F -- "Evet" --> H["En yüksek güvenli plaka bölgesi kırpılır"]
-    H --> I["Ön işleme: gri ton, kontrast artırma, eşikleme"]
-    I --> J["EasyOCR ile plaka karakterleri okunur"]
-    J --> K["Metin temizlenir ve güven skoru hesaplanır"]
-    K --> L{"OCR güveni yeterli mi?"}
-    L -- "Hayır" --> M["Sonuç düşük güven olarak işaretlenir"]
-    L -- "Evet" --> N["Sonuç başarılı olarak işaretlenir"]
-    M --> O["İşaretlenmiş görsel, kırpım ve CSV kaydedilir"]
-    N --> O
-    G --> O
-```
+![Algoritma Akış Şeması](akis_semasi.png)
 
 Algoritma açıklaması ödevde istenen dört temel parçaya göre aşağıdaki gibidir:
 
@@ -174,7 +152,7 @@ Demo çıktıları:
 
 Ödev dosyasında istenen somut çıktılar bu projede aşağıdaki şekilde karşılanmıştır:
 
-- Akış şeması: `docs/akis_semasi.mmd` ve rapordaki mermaid akış şeması
+- Akış şeması: `docs/akis_semasi.svg`, `docs/akis_semasi.png` ve rapordaki görsel akış şeması
 - Algoritma açıklaması: raporun yöntem ve algoritma akış şeması bölümleri
 - Çalışan ilk prototip kod: `src/main.py` ve modüler `src/` dosyaları
 - Baştan sona denenmiş örnek senaryo: `samples/ornek_arac.jpg` ile yapılan demo

@@ -6,6 +6,7 @@
 - [x] Yontem aciklandi.
 - [x] Yontem bolumune projenin adim adim calisma sekli eklendi.
 - [x] Algoritma akis semasi hazirlandi.
+- [x] Algoritma akis semasi rapora gorsel olarak eklendi.
 - [x] Algoritma aciklamasi girdi/islem/hesaplama/cikti basliklariyla netlestirildi.
 - [x] Uygulama tasarimi yazildi.
 - [x] Kullanici girdisi, programin hesapladiklari ve sonucun nasil gosterilecegi ayri ayri yazildi.

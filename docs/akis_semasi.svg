@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1500" viewBox="0 0 1400 1500" role="img" aria-label="Algoritma akış şeması">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/>
+    </marker>
+    <style>
+      .title { font: 700 34px Arial, sans-serif; fill: #0f172a; }
+      .label { font: 700 21px Arial, sans-serif; fill: #0f172a; }
+      .small { font: 400 18px Arial, sans-serif; fill: #334155; }
+      .box { fill: #eef6ff; stroke: #2563eb; stroke-width: 3; rx: 16; }
+      .process { fill: #f8fafc; stroke: #475569; stroke-width: 3; rx: 16; }
+      .decision { fill: #fff7ed; stroke: #f97316; stroke-width: 3; }
+      .output { fill: #ecfdf5; stroke: #16a34a; stroke-width: 3; rx: 16; }
+      .error { fill: #fff1f2; stroke: #e11d48; stroke-width: 3; rx: 16; }
+      .arrow { fill: none; stroke: #334155; stroke-width: 3; marker-end: url(#arrow); }
+      .branch { font: 700 17px Arial, sans-serif; fill: #475569; }
+    </style>
+  </defs>
+
+  <rect width="1400" height="1500" fill="#ffffff"/>
+  <text x="700" y="54" text-anchor="middle" class="title">Algoritma Akış Şeması</text>
+  <text x="700" y="86" text-anchor="middle" class="small">YOLO11n ile plaka tespiti ve EasyOCR ile plaka okuma işlem hattı</text>
+
+  <ellipse cx="700" cy="145" rx="155" ry="46" fill="#e0f2fe" stroke="#0284c7" stroke-width="3"/>
+  <text x="700" y="152" text-anchor="middle" class="label">Başla</text>
+
+  <rect x="490" y="230" width="420" height="84" class="box"/>
+  <text x="700" y="263" text-anchor="middle" class="label">Girdi</text>
+  <text x="700" y="292" text-anchor="middle" class="small">Araç fotoğrafı ve model ağırlığı</text>
+
+  <polygon points="700,370 900,455 700,540 500,455" class="decision"/>
+  <text x="700" y="445" text-anchor="middle" class="label">Görsel okunabiliyor mu?</text>
+  <text x="700" y="475" text-anchor="middle" class="small">Dosya yolu ve format kontrol edilir</text>
+
+  <rect x="1010" y="415" width="300" height="88" class="error"/>
+  <text x="1160" y="448" text-anchor="middle" class="label">Hayır</text>
+  <text x="1160" y="477" text-anchor="middle" class="small">Açıklayıcı hata mesajı</text>
+
+  <rect x="490" y="600" width="420" height="84" class="process"/>
+  <text x="700" y="633" text-anchor="middle" class="label">YOLO11n Modeli</text>
+  <text x="700" y="662" text-anchor="middle" class="small">Plaka tespit modeli yüklenir</text>
+
+  <polygon points="700,740 900,825 700,910 500,825" class="decision"/>
+  <text x="700" y="814" text-anchor="middle" class="label">Plaka tespit edildi mi?</text>
+  <text x="700" y="844" text-anchor="middle" class="small">En yüksek güvenli kutu seçilir</text>
+
+  <rect x="1010" y="785" width="300" height="88" class="error"/>
+  <text x="1160" y="818" text-anchor="middle" class="label">Hayır</text>
+  <text x="1160" y="847" text-anchor="middle" class="small">Tespit edilemedi bilgisi</text>
+
+  <rect x="490" y="965" width="420" height="84" class="process"/>
+  <text x="700" y="998" text-anchor="middle" class="label">Plaka Kırpma</text>
+  <text x="700" y="1027" text-anchor="middle" class="small">Tespit kutusundaki bölge alınır</text>
+
+  <rect x="490" y="1095" width="420" height="84" class="process"/>
+  <text x="700" y="1128" text-anchor="middle" class="label">Ön İşleme</text>
+  <text x="700" y="1157" text-anchor="middle" class="small">Gri ton, kontrast, eşikleme</text>
+
+  <rect x="490" y="1225" width="420" height="84" class="process"/>
+  <text x="700" y="1258" text-anchor="middle" class="label">OCR ve Hesaplama</text>
+  <text x="700" y="1287" text-anchor="middle" class="small">EasyOCR, metin temizleme, güven skoru</text>
+
+  <rect x="430" y="1370" width="540" height="92" class="output"/>
+  <text x="700" y="1404" text-anchor="middle" class="label">Çıktı</text>
+  <text x="700" y="1433" text-anchor="middle" class="small">İşaretlenmiş görsel, plaka kırpımı ve CSV sonuç tablosu</text>
+
+  <line x1="700" y1="191" x2="700" y2="230" class="arrow"/>
+  <line x1="700" y1="314" x2="700" y2="370" class="arrow"/>
+  <line x1="900" y1="455" x2="1010" y2="455" class="arrow"/>
+  <text x="958" y="440" text-anchor="middle" class="branch">Hayır</text>
+  <line x1="700" y1="540" x2="700" y2="600" class="arrow"/>
+  <text x="728" y="574" class="branch">Evet</text>
+  <line x1="700" y1="684" x2="700" y2="740" class="arrow"/>
+  <line x1="900" y1="825" x2="1010" y2="825" class="arrow"/>
+  <text x="958" y="810" text-anchor="middle" class="branch">Hayır</text>
+  <line x1="700" y1="910" x2="700" y2="965" class="arrow"/>
+  <text x="728" y="940" class="branch">Evet</text>
+  <line x1="700" y1="1049" x2="700" y2="1095" class="arrow"/>
+  <line x1="700" y1="1179" x2="700" y2="1225" class="arrow"/>
+  <line x1="700" y1="1309" x2="700" y2="1370" class="arrow"/>
+
+  <path d="M1160 503 C1160 650 1040 1350 970 1416" class="arrow"/>
+  <path d="M1160 873 C1160 1030 1050 1340 970 1416" class="arrow"/>
+</svg>

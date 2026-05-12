@@ -6,6 +6,9 @@ const inputPath = path.join(root, "docs", "rapor.md");
 const outputPath = path.join(root, "docs", "rapor.docx");
 
 const markdown = fs.readFileSync(inputPath, "utf8");
+const documentRelationships = [];
+const mediaEntries = {};
+let imageCounter = 1;
 
 function xmlEscape(value) {
   return value
@@ -18,6 +21,65 @@ function xmlEscape(value) {
 function paragraph(text, style) {
   const styleXml = style ? `<w:pPr><w:pStyle w:val="${style}"/></w:pPr>` : "";
   return `<w:p>${styleXml}<w:r><w:t xml:space="preserve">${xmlEscape(text)}</w:t></w:r></w:p>`;
+}
+
+function imageParagraph(alt, imageRef) {
+  const imagePath = path.resolve(path.dirname(inputPath), imageRef);
+  if (!fs.existsSync(imagePath)) {
+    return paragraph(`[Görsel bulunamadı: ${imageRef}]`, null);
+  }
+
+  const relId = `rIdImage${imageCounter}`;
+  const extension = path.extname(imagePath).slice(1).toLowerCase() || "png";
+  const mediaName = `image${imageCounter}.${extension}`;
+  const docPrId = imageCounter + 100;
+  const cNvPrId = imageCounter + 200;
+  imageCounter += 1;
+
+  documentRelationships.push(
+    `<Relationship Id="${relId}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/${mediaName}"/>`
+  );
+  mediaEntries[`word/media/${mediaName}`] = fs.readFileSync(imagePath);
+
+  const cx = 5760000;
+  const cy = 6171430;
+  const name = xmlEscape(alt || mediaName);
+
+  return `<w:p>
+    <w:pPr><w:jc w:val="center"/></w:pPr>
+    <w:r>
+      <w:drawing>
+        <wp:inline distT="0" distB="0" distL="0" distR="0">
+          <wp:extent cx="${cx}" cy="${cy}"/>
+          <wp:docPr id="${docPrId}" name="${name}"/>
+          <wp:cNvGraphicFramePr>
+            <a:graphicFrameLocks noChangeAspect="1"/>
+          </wp:cNvGraphicFramePr>
+          <a:graphic>
+            <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+              <pic:pic>
+                <pic:nvPicPr>
+                  <pic:cNvPr id="${cNvPrId}" name="${name}"/>
+                  <pic:cNvPicPr/>
+                </pic:nvPicPr>
+                <pic:blipFill>
+                  <a:blip r:embed="${relId}"/>
+                  <a:stretch><a:fillRect/></a:stretch>
+                </pic:blipFill>
+                <pic:spPr>
+                  <a:xfrm>
+                    <a:off x="0" y="0"/>
+                    <a:ext cx="${cx}" cy="${cy}"/>
+                  </a:xfrm>
+                  <a:prstGeom prst="rect"><a:avLst/></a:prstGeom>
+                </pic:spPr>
+              </pic:pic>
+            </a:graphicData>
+          </a:graphic>
+        </wp:inline>
+      </w:drawing>
+    </w:r>
+  </w:p>`;
 }
 
 function markdownToDocumentXml(source) {
@@ -36,7 +98,10 @@ function markdownToDocumentXml(source) {
       continue;
     }
 
-    if (!inCode && line.startsWith("# ")) {
+    const imageMatch = !inCode && line.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+    if (imageMatch) {
+      body.push(imageParagraph(imageMatch[1].trim(), imageMatch[2].trim()));
+    } else if (!inCode && line.startsWith("# ")) {
       body.push(paragraph(line.slice(2).trim(), "Title"));
     } else if (!inCode && line.startsWith("## ")) {
       body.push(paragraph(line.slice(3).trim(), "Heading1"));
@@ -50,7 +115,12 @@ function markdownToDocumentXml(source) {
   }
 
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+<w:document
+  xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+  xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+  xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
+  xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+  xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
   <w:body>
     ${body.join("\n")}
     <w:sectPr>
@@ -61,11 +131,14 @@ function markdownToDocumentXml(source) {
 </w:document>`;
 }
 
+const documentXml = markdownToDocumentXml(markdown);
+
 const files = {
   "[Content_Types].xml": `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
   <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
   <Default Extension="xml" ContentType="application/xml"/>
+  <Default Extension="png" ContentType="image/png"/>
   <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
   <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>
 </Types>`,
@@ -73,7 +146,11 @@ const files = {
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
   <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
 </Relationships>`,
-  "word/document.xml": markdownToDocumentXml(markdown),
+  "word/document.xml": documentXml,
+  "word/_rels/document.xml.rels": `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  ${documentRelationships.join("\n  ")}
+</Relationships>`,
   "word/styles.xml": `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
   <w:style w:type="paragraph" w:styleId="Title"><w:name w:val="Title"/><w:rPr><w:b/><w:sz w:val="32"/></w:rPr></w:style>
@@ -81,6 +158,7 @@ const files = {
   <w:style w:type="paragraph" w:styleId="Heading2"><w:name w:val="Heading 2"/><w:rPr><w:b/><w:sz w:val="22"/></w:rPr></w:style>
   <w:style w:type="paragraph" w:styleId="Code"><w:name w:val="Code"/><w:rPr><w:rFonts w:ascii="Consolas" w:hAnsi="Consolas"/><w:sz w:val="20"/></w:rPr></w:style>
 </w:styles>`,
+  ...mediaEntries,
 };
 
 function makeCrcTable() {
@@ -132,7 +210,7 @@ function createZip(entries) {
 
   for (const [name, content] of Object.entries(entries)) {
     const nameBuffer = Buffer.from(name, "utf8");
-    const data = Buffer.from(content, "utf8");
+    const data = Buffer.isBuffer(content) ? content : Buffer.from(content, "utf8");
     const crc = crc32(data);
 
     const localHeader = Buffer.concat([
@@ -192,4 +270,3 @@ function createZip(entries) {
 
 fs.writeFileSync(outputPath, createZip(files));
 console.log(`Created ${outputPath}`);
-
