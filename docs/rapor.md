@@ -34,6 +34,10 @@ Projenin çalışma adımları şu şekildedir:
 
 ## 5. Algoritma Akış Şeması
 
+Metinsel akış şeması özeti:
+
+`Araç fotoğrafı -> Görsel kontrolü -> YOLO11n ile plaka tespiti -> Plaka kırpma -> Görüntü ön işleme -> EasyOCR ile okuma -> Metin temizleme ve güven skoru -> Görsel/CSV çıktı`
+
 ```mermaid
 flowchart TD
     A["Girdi: Araç fotoğrafı"] --> B{"Görsel dosyası okunabiliyor mu?"}

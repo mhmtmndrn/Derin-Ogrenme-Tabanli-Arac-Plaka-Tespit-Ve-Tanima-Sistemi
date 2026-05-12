@@ -22,4 +22,5 @@
 - [x] Gercek egitim metrikleri rapora eklendi.
 - [x] En az bir gercek arac fotografiyle demo calistirildi.
 - [x] OCR demo sonucu rapora eklendi.
-- [ ] Rapor Word dosyasindan PDF'ye aktarildi.
+- [x] Rapor Word/PDF teslim formuna uygun hale getirildi.
+- [x] Rapor PDF dosyasi olusturuldu.
