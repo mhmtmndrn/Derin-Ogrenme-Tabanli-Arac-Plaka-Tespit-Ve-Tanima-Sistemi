@@ -2,19 +2,25 @@
 
 - [x] Proje adi belirlendi.
 - [x] Proje konusu yazildi.
-- [x] GitHub linki icin yer tutucu eklendi.
+- [x] Gercek GitHub repo linki rapora eklendi.
 - [x] Yontem aciklandi.
+- [x] Yontem bolumune projenin adim adim calisma sekli eklendi.
 - [x] Algoritma akis semasi hazirlandi.
+- [x] Algoritma aciklamasi girdi/islem/hesaplama/cikti basliklariyla netlestirildi.
 - [x] Uygulama tasarimi yazildi.
+- [x] Kullanici girdisi, programin hesapladiklari ve sonucun nasil gosterilecegi ayri ayri yazildi.
 - [x] Basari olcutleri belirlendi.
 - [x] Moduler Python prototip kodu hazirlandi.
+- [x] Teknik kisimda ana akis, moduler fonksiyonlar, islem hatti ve ara ciktilar aciklandi.
 - [x] Colab egitim not defteri hazirlandi.
 - [x] CSV/tablo cikti formati hazirlandi.
 - [x] APA kaynakca eklendi.
+- [x] Odev PDF'indeki somut cikti maddeleri raporda tek tek karsilandi.
 - [x] Word'e aktarilabilir rapor dosyasi olusturuldu.
 - [x] Kaggle egitimi calistirildi.
 - [x] `models/best.pt` indirildi.
 - [x] Gercek egitim metrikleri rapora eklendi.
 - [x] En az bir gercek arac fotografiyle demo calistirildi.
 - [x] OCR demo sonucu rapora eklendi.
-- [ ] Rapor Word dosyasindan PDF'ye aktarildi.
+- [x] Rapor Word/PDF teslim formuna uygun hale getirildi.
+- [x] Rapor PDF dosyasi olusturuldu.

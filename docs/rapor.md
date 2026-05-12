@@ -1,5 +1,7 @@
 # Derin Öğrenme Tabanlı Araç Plaka Tespit ve Okuma Sistemi
 
+Bu rapor, Python Programlamaya Giriş dersi kapsamında verilen ödevde istenen başlıklara göre hazırlanmıştır. Çalışmada proje adı, konu, public GitHub bağlantısı, yöntem, algoritma akış şeması, uygulama tasarımı, başarı ölçütleri, teknik prototip, örnek senaryo, somut çıktılar ve APA biçiminde kaynakça yer almaktadır.
+
 ## 1. Proje Adı
 
 Derin Öğrenme Tabanlı Araç Plaka Tespit ve Okuma Sistemi
@@ -12,9 +14,7 @@ YOLO yaklaşımı, nesne tespitini tek bir sinir ağı geçişinde gerçekleşti
 
 ## 3. GitHub Linki
 
-GitHub public repo linki: `https://github.com/kullanici/plaka-tespit-okuma`
-
-Not: Bu link teslimden önce gerçek public GitHub repo linkiyle değiştirilecektir.
+GitHub public repo linki: `https://github.com/mhmtmndrn/Derin-Ogrenme-Tabanli-Arac-Plaka-Tespit-Ve-Tanima-Sistemi`
 
 ## 4. Yöntem
 
@@ -22,7 +22,21 @@ Projede plaka tespiti için Ultralytics YOLO11n modeli kullanılmıştır. Model
 
 Plaka okuma aşamasında EasyOCR kullanılacaktır. Tespit edilen plaka bölgesi önce kırpılır, sonra gri tonlama, kontrast artırma ve eşikleme gibi ön işleme adımlarıyla OCR için hazırlanır. EasyOCR sonucunda elde edilen metin büyük harfe çevrilir ve sadece harf/rakam karakterleri kalacak şekilde temizlenir.
 
+Projenin çalışma adımları şu şekildedir:
+
+1. Araç fotoğrafı programa verilir.
+2. Eğitilmiş YOLO11n modeli yüklenir.
+3. Görsel üzerindeki plaka bölgesi nesne tespitiyle bulunur.
+4. En güvenilir plaka kutusu seçilir ve plaka alanı kırpılır.
+5. Kırpılan görüntü OCR için ön işlemden geçirilir.
+6. EasyOCR ile plaka karakterleri okunur.
+7. Metin temizlenir, güven skorları hesaplanır ve sonuçlar görsel/CSV olarak kaydedilir.
+
 ## 5. Algoritma Akış Şeması
+
+Metinsel akış şeması özeti:
+
+`Araç fotoğrafı -> Görsel kontrolü -> YOLO11n ile plaka tespiti -> Plaka kırpma -> Görüntü ön işleme -> EasyOCR ile okuma -> Metin temizleme ve güven skoru -> Görsel/CSV çıktı`
 
 ```mermaid
 flowchart TD
@@ -44,6 +58,13 @@ flowchart TD
     G --> O
 ```
 
+Algoritma açıklaması ödevde istenen dört temel parçaya göre aşağıdaki gibidir:
+
+- Girdi: Kullanıcının verdiği araç fotoğrafı ve eğitilmiş YOLO ağırlık dosyasıdır.
+- İşlem: Fotoğraf okunur, YOLO modeliyle plaka kutusu tahmin edilir ve plaka bölgesi kırpılır.
+- Hesaplama: Plaka kutusu güven skoru, OCR sonucu ve OCR güven skoru hesaplanır; okunan metin harf/rakam dışı karakterlerden temizlenir.
+- Çıktı: İşaretlenmiş sonuç görseli, kırpılmış plaka görüntüsü ve plaka metni/güven skorlarını içeren CSV dosyası üretilir.
+
 ## 6. Uygulama Tasarımı
 
 Kullanıcı programa bir araç fotoğrafı ve eğitilmiş YOLO ağırlık dosyası verir. Program fotoğrafı okur, plaka bölgesini tespit eder, plakayı kırpar ve OCR işlemini uygular.
@@ -53,6 +74,21 @@ Kullanıcı programa bir araç fotoğrafı ve eğitilmiş YOLO ağırlık dosyas
 ```bash
 python src/main.py --image samples/ornek_arac.jpg --weights models/best.pt --output outputs/demo_result.jpg --csv outputs/results.csv
 ```
+
+Kullanıcının gireceği bilgiler:
+
+- `--image`: İşlenecek araç fotoğrafının yolu
+- `--weights`: Eğitilmiş YOLO model dosyasının yolu
+- `--output`: İşaretlenmiş sonuç görselinin kaydedileceği yol
+- `--csv`: Sonuç tablosunun kaydedileceği yol
+
+Programın hesapladığı değerler:
+
+- Plaka konumunu belirleyen koordinatlar
+- YOLO tespit güven skoru
+- OCR ile okunan ham ve temizlenmiş plaka metni
+- OCR güven skoru
+- Sonuç durumu: başarılı, düşük güven veya tespit edilemedi
 
 Programın ürettiği çıktılar:
 
@@ -74,7 +110,9 @@ Projenin başarılı sayılması için aşağıdaki ölçütler kullanılacaktı
 
 ## 8. Teknik Kısım
 
-Program modüler dosyalardan oluşur:
+Programın ana akışı `src/main.py` dosyasında kurulmuştur. Ana akışta komut satırı argümanları okunur, görsel dosyası kontrol edilir, YOLO modeliyle tespit yapılır, plaka kırpılır, OCR uygulanır ve sonuçlar kaydedilir. Böylece ödevde istenen en az bir işlem hattı baştan sona çalıştırılmıştır.
+
+Fonksiyonlar modüler hale getirilmiştir:
 
 - `src/detector.py`: YOLO modelini yükler ve plaka kutularını tespit eder.
 - `src/preprocess.py`: görsel okuma, plaka kırpma, OCR ön işleme ve metin temizleme işlemlerini yapar.
@@ -83,6 +121,8 @@ Program modüler dosyalardan oluşur:
 - `src/main.py`: tüm akışı komut satırından çalıştırır.
 
 Eğitim not defteri `notebooks/plaka_model_egitimi_kaggle.ipynb` dosyasındadır. Bu defterde veri seti indirme, YOLO eğitimi, doğrulama, test ve örnek tahmin adımları bulunur.
+
+Grafik, tablo ve ara çıktılar da üretilmiştir. Eğitim sürecinden `results.csv`, `results.png`, `confusion_matrix.png`, `BoxPR_curve.png` ve örnek tahmin görseli alınmıştır. Prototip çalıştırıldığında ayrıca `outputs/results.csv`, `outputs/demo_result.jpg` ve kırpılmış plaka görüntüsü oluşturulmuştur.
 
 ## 9. Örnek Senaryo
 
@@ -130,7 +170,19 @@ Demo çıktıları:
 - `outputs/crops/ornek_arac_plate_crop.jpg`
 - `outputs/results.csv`
 
-## 11. Kaynakça
+## 11. Teslim Edilmesi Gereken Somut Çıktılar
+
+Ödev dosyasında istenen somut çıktılar bu projede aşağıdaki şekilde karşılanmıştır:
+
+- Akış şeması: `docs/akis_semasi.mmd` ve rapordaki mermaid akış şeması
+- Algoritma açıklaması: raporun yöntem ve algoritma akış şeması bölümleri
+- Çalışan ilk prototip kod: `src/main.py` ve modüler `src/` dosyaları
+- Baştan sona denenmiş örnek senaryo: `samples/ornek_arac.jpg` ile yapılan demo
+- Tablo/grafik/ara çıktı: `outputs/results.csv`, `docs/egitim_ciktilari/results.png`, `docs/egitim_ciktilari/confusion_matrix.png`
+- Model çıktısı: `models/best.pt`
+- Kaynakça ve literatür kullanımı: raporda YOLO, ALPR, YOLO11, Roboflow ve EasyOCR kaynaklarına APA biçiminde yer verilmiş; ilgili bölümlerde metin içi atıf yapılmıştır.
+
+## 12. Kaynakça
 
 JaidedAI. (2024). *EasyOCR: Ready-to-use OCR with 80+ supported languages*. GitHub. https://github.com/JaidedAI/EasyOCR
 
