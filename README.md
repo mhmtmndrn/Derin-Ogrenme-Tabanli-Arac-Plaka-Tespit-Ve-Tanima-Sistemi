@@ -2,6 +2,8 @@
 
 Bu proje, bir arac fotografi uzerinden plaka bolgesini YOLO tabanli nesne tespitiyle bulup, tespit edilen plaka goruntusunu EasyOCR ile okuyacak ilk prototipi icerir.
 
+## Video link: https://drive.google.com/file/d/1TysHgSTk23dyT0e8zMkosK12ajNH2RVx/view?usp=sharing
+
 ## Proje Yapisi
 
 ```text
