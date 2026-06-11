@@ -32,7 +32,7 @@ class PlateDetector:
         if not self.weights_path.exists():
             raise FileNotFoundError(
                 f"Model agirligi bulunamadi: {self.weights_path}. "
-                "Colab egitiminden sonra best.pt dosyasini models/best.pt olarak kaydedin."
+                "Kaggle egitiminden sonra best.pt dosyasini models/plate_detector.pt olarak kaydedin."
             )
 
         try:

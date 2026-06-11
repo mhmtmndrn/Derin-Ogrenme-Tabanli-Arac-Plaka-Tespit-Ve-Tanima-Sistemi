@@ -1,8 +1,4 @@
-ultralytics>=8.3.0
-easyocr>=1.7.2
-opencv-python>=4.9.0
-numpy>=1.26.0
-pandas>=2.0.0
-matplotlib>=3.8.0
-roboflow>=1.1.0
-
+easyocr
+numpy
+opencv-python-headless
+ultralytics
