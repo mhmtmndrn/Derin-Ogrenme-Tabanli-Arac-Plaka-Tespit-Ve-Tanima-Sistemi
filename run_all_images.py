@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+"""Batch runner for plate detection, OCR, visualization, and HTML/CSV reporting."""
+
 import argparse
 import csv
 import re
@@ -25,6 +27,7 @@ from src.visualize import save_image
 
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
+# The CSV report mirrors the per-plate rows that the HTML gallery renders.
 CSV_FIELDS = [
     "image_name",
     "image_path",
@@ -46,6 +49,7 @@ CSV_FIELDS = [
 
 @dataclass(frozen=True)
 class PlateRead:
+    # A single detection plus the text chosen for that crop.
     detection: PlateDetection
     text: str
     raw_text: str
@@ -86,6 +90,7 @@ def main() -> int:
     crop_dir = output_dir / "crops"
     csv_path = output_dir / "all_results.csv"
 
+    # Sort input files naturally so image_2.jpg comes before image_10.jpg.
     image_paths = sorted(
         [path for path in image_dir.iterdir() if path.is_file() and path.suffix.lower() in IMAGE_EXTENSIONS],
         key=natural_sort_key,
@@ -93,6 +98,7 @@ def main() -> int:
     if not image_paths:
         raise FileNotFoundError(f"Gorsel bulunamadi: {image_dir}")
 
+    # Load the detection model once and reuse it for the full batch.
     detector = PlateDetector(args.detector_weights, confidence=args.conf, image_size=args.imgsz)
     reader: YOLOPlateReader | None = None
     easyocr_reader: EasyOCRPlateReader | None = None
@@ -109,6 +115,7 @@ def main() -> int:
         annotated_path = annotated_dir / f"{image_path.stem}_result.jpg"
 
         if not detections:
+            # Keep a visible output even when no plate is found.
             annotated = draw_no_detection(image)
             save_image(annotated_path, annotated)
             rows.append(no_detection_row(image_path, annotated_path))
@@ -116,6 +123,7 @@ def main() -> int:
 
         reads: list[PlateRead] = []
         for plate_index, detection in enumerate(detections, start=1):
+            # Each plate crop is stored separately so OCR failures can be inspected later.
             plate_crop = crop_plate(image, detection)
             crop_path = crop_dir / f"{image_path.stem}_plate_{plate_index}.jpg"
             save_image(crop_path, plate_crop)
@@ -135,6 +143,7 @@ def main() -> int:
                     easyocr_candidates = easyocr_reader.read_candidates(build_ocr_variants(plate_crop))
                     candidate = choose_ocr_candidate(candidate, easyocr_candidates, args.ocr_conf)
 
+            # Normalize the final status after the best candidate is selected.
             status = plate_status(candidate.text, candidate.confidence, args.ocr_conf)
             reads.append(
                 PlateRead(
@@ -169,6 +178,7 @@ def main() -> int:
 
 
 def natural_sort_key(path: Path) -> list[tuple[int, int | str]]:
+    # Break the stem into digit and non-digit chunks for human-friendly ordering.
     parts: list[tuple[int, int | str]] = []
     current = ""
     for char in path.stem:
@@ -186,6 +196,7 @@ def natural_sort_key(path: Path) -> list[tuple[int, int | str]]:
 
 
 def should_try_easyocr(candidate: OCRCandidate, min_confidence: float) -> bool:
+    # Hybrid mode falls back when YOLO text is weak or looks suspicious.
     if not candidate.text or candidate.confidence < min_confidence:
         return True
     return bool(candidate.raw_text and candidate.raw_text != candidate.text)
@@ -196,6 +207,7 @@ def choose_ocr_candidate(
     easyocr_candidates: list[OCRCandidate],
     min_confidence: float,
 ) -> OCRCandidate:
+    # Blend the YOLO result with EasyOCR and heuristic repairs, then score the pool.
     if yolo_candidate.text and yolo_candidate.confidence >= min_confidence:
         has_clean_raw = not yolo_candidate.raw_text or yolo_candidate.raw_text == yolo_candidate.text
         if has_clean_raw:
@@ -236,6 +248,7 @@ def choose_ocr_candidate(
 
 
 def choose_easyocr_only_candidate(easyocr_candidates: list[OCRCandidate]) -> OCRCandidate:
+    # EasyOCR-only mode still ranks multiple variants before choosing one text.
     pool = [candidate for candidate in easyocr_candidates if candidate.text]
     if not pool:
         return OCRCandidate(text="", confidence=0.0, raw_text="", source="none")
@@ -257,6 +270,7 @@ def choose_easyocr_only_candidate(easyocr_candidates: list[OCRCandidate]) -> OCR
 
 
 def build_yolo_repair_candidates(yolo_candidate: OCRCandidate) -> list[tuple[OCRCandidate, float]]:
+    # Generate small OCR edits for the YOLO text when the raw sequence is noisy.
     if not yolo_candidate.raw_text:
         return []
 
@@ -283,6 +297,7 @@ def build_province_fusion_candidates(
     easyocr_candidates: list[OCRCandidate],
     province_hints: set[str],
 ) -> list[tuple[OCRCandidate, float]]:
+    # Recombine EasyOCR suffixes with likely province codes extracted from raw text.
     if not province_hints:
         return []
 
@@ -317,6 +332,7 @@ def score_candidate(
     yolo_raw_text: str,
     easyocr_raw_texts: list[str],
 ) -> float:
+    # Score the candidate by combining direct confidence with shape and cross-reader support.
     score = candidate.confidence
     if candidate.text[:2] in province_hints:
         score += 0.45
@@ -335,6 +351,7 @@ def score_candidate(
 
 
 def plate_shape_score(text: str) -> float:
+    # Turkish plates follow a fairly constrained shape, so reward plausible layouts.
     if len(text) < 5:
         return 0.0
 
@@ -360,6 +377,7 @@ def plate_shape_score(text: str) -> float:
 
 
 def province_hints_from_raw(raw_text: str) -> set[str]:
+    # Extract two-digit province candidates from loose OCR text.
     cleaned = re.sub(r"[^A-Z0-9]", "", raw_text.upper())
     hints: set[str] = set()
     for first in range(min(len(cleaned), 4)):
@@ -375,6 +393,7 @@ def province_hints_from_raw(raw_text: str) -> set[str]:
 
 
 def coerce_digit(char: str) -> str | None:
+    # Map common OCR confusions back to digits when possible.
     if char.isdigit():
         return char
     return {
@@ -392,6 +411,7 @@ def coerce_digit(char: str) -> str | None:
 
 
 def raw_support(candidate_text: str, raw_text: str) -> float:
+    # Measure how much of the cleaned candidate appears in the raw OCR text.
     cleaned_raw = re.sub(r"[^A-Z0-9]", "", raw_text.upper())
     if not candidate_text or not cleaned_raw:
         return 0.0
@@ -399,6 +419,7 @@ def raw_support(candidate_text: str, raw_text: str) -> float:
 
 
 def longest_common_subsequence(left: str, right: str) -> int:
+    # Small dynamic-programming helper used to estimate text similarity.
     previous = [0] * (len(right) + 1)
     for left_char in left:
         current = [0]
@@ -412,6 +433,7 @@ def longest_common_subsequence(left: str, right: str) -> int:
 
 
 def draw_reads(image: np.ndarray, reads: list[PlateRead]) -> np.ndarray:
+    # Draw every detection with its selected OCR result.
     canvas = image.copy()
     for index, read in enumerate(reads, start=1):
         x1, y1, x2, y2 = read.detection.xyxy
@@ -425,12 +447,14 @@ def draw_reads(image: np.ndarray, reads: list[PlateRead]) -> np.ndarray:
 
 
 def draw_no_detection(image: np.ndarray) -> np.ndarray:
+    # Render a simple banner when the detector finds nothing.
     canvas = image.copy()
     draw_label(canvas, "Plaka tespit edilemedi", 12, 30, (0, 0, 255))
     return canvas
 
 
 def draw_label(image: np.ndarray, label: str, x: int, y: int, color: tuple[int, int, int]) -> None:
+    # Draw a white label box so the text stays readable on any background.
     font = cv2.FONT_HERSHEY_SIMPLEX
     scale = 0.62
     thickness = 2
@@ -444,6 +468,7 @@ def draw_label(image: np.ndarray, label: str, x: int, y: int, color: tuple[int, 
 
 
 def no_detection_row(image_path: Path, annotated_path: Path) -> dict[str, str]:
+    # Standardize the CSV row for images where no plate was found.
     return {
         "image_name": image_path.name,
         "image_path": str(image_path),
@@ -464,6 +489,7 @@ def no_detection_row(image_path: Path, annotated_path: Path) -> dict[str, str]:
 
 
 def read_row(image_path: Path, plate_index: int, read: PlateRead, annotated_path: Path) -> dict[str, str]:
+    # Standardize the CSV row for one detected plate.
     x1, y1, x2, y2 = read.detection.xyxy
     return {
         "image_name": image_path.name,
@@ -485,6 +511,7 @@ def read_row(image_path: Path, plate_index: int, read: PlateRead, annotated_path
 
 
 def write_csv(path: Path, rows: list[dict[str, str]]) -> None:
+    # Emit UTF-8-sig so spreadsheet tools open the CSV cleanly.
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8-sig") as file:
         writer = csv.DictWriter(file, fieldnames=CSV_FIELDS)
@@ -493,6 +520,7 @@ def write_csv(path: Path, rows: list[dict[str, str]]) -> None:
 
 
 def write_gallery(path: Path, rows: list[dict[str, str]], output_dir: Path) -> None:
+    # Build a tiny static gallery so results can be inspected without Python.
     path.parent.mkdir(parents=True, exist_ok=True)
     cards = []
     for row in rows:
@@ -549,6 +577,7 @@ def write_gallery(path: Path, rows: list[dict[str, str]], output_dir: Path) -> N
 
 
 def html_relative_path(value: str, output_dir: Path) -> str:
+    # Keep generated links relative when possible, which makes the gallery portable.
     path = Path(value)
     try:
         path = path.relative_to(output_dir)
@@ -558,6 +587,7 @@ def html_relative_path(value: str, output_dir: Path) -> str:
 
 
 def write_contact_sheet(image_paths: list[Path], annotated_dir: Path, output_path: Path) -> None:
+    # Compose a single overview image that fits many annotated results on one page.
     columns = 5
     cell_width = 340
     cell_height = 260

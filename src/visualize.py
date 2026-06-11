@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+"""OpenCV drawing helpers for annotated plate results."""
+
 from pathlib import Path
 
 import cv2
@@ -17,6 +19,7 @@ def draw_plate_result(
     plate_text: str,
     status: str,
 ) -> np.ndarray:
+    # Draw either the detection box or a visible no-detection banner.
     canvas = image.copy()
     if detection is None:
         _draw_banner(canvas, "Plaka tespit edilemedi", (0, 0, 255))
@@ -34,6 +37,7 @@ def draw_plate_result(
 
 
 def save_image(path: str | Path, image: np.ndarray) -> Path:
+    # Wrap cv2.imwrite so callers get a checked Path back.
     output_path = Path(path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     ok = cv2.imwrite(str(output_path), image)
@@ -43,5 +47,6 @@ def save_image(path: str | Path, image: np.ndarray) -> Path:
 
 
 def _draw_banner(image: np.ndarray, message: str, color: tuple[int, int, int]) -> None:
+    # Reserve a solid strip at the top so the status text stands out.
     cv2.rectangle(image, (0, 0), (image.shape[1], 44), (255, 255, 255), -1)
     cv2.putText(image, message, (12, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2, cv2.LINE_AA)

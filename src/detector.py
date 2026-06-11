@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+"""YOLO-based license plate detection helpers."""
+
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
@@ -21,6 +23,7 @@ class PlateDetection:
 
     @property
     def xyxy(self) -> tuple[int, int, int, int]:
+        # Keep the box representation convenient for OpenCV drawing and cropping.
         return self.x1, self.y1, self.x2, self.y2
 
 
@@ -46,6 +49,7 @@ class PlateDetector:
 
     def detect(self, image: np.ndarray, max_plates: int = 1) -> list[PlateDetection]:
         """Detect license plates and return the highest-confidence boxes."""
+        # Ultralytics returns one result object per image, so we only read the first entry.
         results = self.model.predict(
             source=image,
             conf=self.confidence,
@@ -60,6 +64,7 @@ class PlateDetector:
         if result.boxes is None or len(result.boxes) == 0:
             return []
 
+        # Convert the model output into a small, typed structure for downstream code.
         names = self._names()
         detections: list[PlateDetection] = []
         for box in result.boxes:
@@ -83,6 +88,7 @@ class PlateDetector:
         return detections[:max_plates]
 
     def _names(self) -> dict[int, str]:
+        # Ultralytics may expose class names as either a dict or a list-like container.
         raw_names = getattr(self.model, "names", {}) or {}
         if isinstance(raw_names, dict):
             return {int(key): str(value) for key, value in raw_names.items()}
