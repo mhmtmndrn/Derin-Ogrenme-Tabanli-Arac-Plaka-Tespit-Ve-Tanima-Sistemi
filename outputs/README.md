@@ -1,10 +1,13 @@
 # Ciktilar
 
-Program calistiginda bu klasorde islenmis gorseller, kirpilmis plaka gorselleri ve sonuc CSV dosyasi olusur.
+Program calistiginda bu klasorde islenmis gorseller, kirpilmis plaka gorselleri, CSV ve HTML sonuc galerisi olusur.
 
-Beklenen dosyalar:
+Toplu calistirma icin beklenen dosyalar:
 
-- `demo_result.jpg`
-- `crops/<gorsel_adi>_plate_1.jpg`
-- `results.csv`
+- `all_results.csv`
+- `index.html`
+- `contact_sheet.jpg`
+- `annotated/<gorsel_adi>_result.jpg`
+- `crops/<gorsel_adi>_plate_<sira>.jpg`
 
+Bu dosyalar tekrar uretilebilir oldugu icin Git tarafinda yok sayilir. Klasor aciklamasi icin bu README dosyasi tutulur.
