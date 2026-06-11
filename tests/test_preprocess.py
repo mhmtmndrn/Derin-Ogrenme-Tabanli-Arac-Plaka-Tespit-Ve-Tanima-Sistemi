@@ -4,6 +4,7 @@ from src.preprocess import normalize_plate_text
 
 
 class PlateNormalizationTests(unittest.TestCase):
+    # These regression tests lock the text-cleaning behavior used by OCR scoring.
     def test_accepts_spaces_and_lowercase(self) -> None:
         self.assertEqual(normalize_plate_text("34 ea 2525"), "34EA2525")
 

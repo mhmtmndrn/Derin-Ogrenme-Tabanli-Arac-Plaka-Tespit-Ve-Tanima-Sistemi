@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+"""OCR readers and text candidates for Turkish license plates."""
+
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
@@ -15,6 +17,7 @@ except ImportError:
 
 
 UC3M_OCR_CLASSES = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+# The YOLO character model usually predicts one class per symbol on the plate.
 
 
 @dataclass(frozen=True)
@@ -39,6 +42,7 @@ class EasyOCRPlateReader:
         self.reader = easyocr.Reader(self.languages, gpu=gpu)
 
     def read_best(self, image_variants: list[np.ndarray]) -> OCRCandidate:
+        # Score all candidate texts and return the strongest one.
         candidates = self.read_candidates(image_variants)
         if not candidates:
             return OCRCandidate(text="", confidence=0.0, raw_text="", source="none")
@@ -47,6 +51,7 @@ class EasyOCRPlateReader:
         return candidates[0]
 
     def read_candidates(self, image_variants: list[np.ndarray]) -> list[OCRCandidate]:
+        # Try multiple preprocessed variants and a few OCR parameter settings.
         candidates: list[OCRCandidate] = []
         for variant in image_variants:
             candidates.extend(self._read_variant(variant))
@@ -64,6 +69,7 @@ class EasyOCRPlateReader:
         return candidates
 
     def _read_variant(self, image: np.ndarray, options: dict[str, float] | None = None) -> list[OCRCandidate]:
+        # EasyOCR returns polygons, raw text, and confidence for each line it reads.
         results = self.reader.readtext(
             image,
             detail=1,
@@ -94,6 +100,7 @@ class EasyOCRPlateReader:
 
 @dataclass(frozen=True)
 class CharacterDetection:
+    # Individual character detections are sorted by horizontal position.
     char: str
     confidence: float
     center_x: float
@@ -120,6 +127,7 @@ class YOLOPlateReader:
         self.image_size = image_size
 
     def read(self, plate_image: np.ndarray) -> OCRCandidate:
+        # Empty crops should short-circuit to avoid unnecessary model calls.
         if plate_image.size == 0:
             return OCRCandidate(text="", confidence=0.0, raw_text="", source="none")
 
@@ -136,6 +144,7 @@ class YOLOPlateReader:
         if result.boxes is None or len(result.boxes) == 0:
             return OCRCandidate(text="", confidence=0.0, raw_text="", source="none")
 
+        # Reconstruct the plate text from left-to-right character boxes.
         names = self._names()
         characters: list[CharacterDetection] = []
         for box in result.boxes:
@@ -157,6 +166,7 @@ class YOLOPlateReader:
         average_confidence = sum(item.confidence for item in characters) / len(characters)
         text = normalize_plate_text(raw_text)
         if not text:
+            # Preserve the raw ordering and confidence even when normalization rejects the text.
             return OCRCandidate(
                 text="",
                 confidence=average_confidence,
@@ -174,6 +184,7 @@ class YOLOPlateReader:
         )
 
     def _class_name(self, class_id: int, names: dict[int, str]) -> str:
+        # Normalize class labels so both numeric and letter labels become a single ASCII character.
         raw_name = names.get(class_id)
         if raw_name is None and 0 <= class_id < len(UC3M_OCR_CLASSES):
             raw_name = UC3M_OCR_CLASSES[class_id]
@@ -188,6 +199,7 @@ class YOLOPlateReader:
         return cleaned
 
     def _names(self) -> dict[int, str]:
+        # Mirror the detector helper because Ultralytics uses the same names shape here.
         raw_names = getattr(self.model, "names", {}) or {}
         if isinstance(raw_names, dict):
             return {int(key): str(value) for key, value in raw_names.items()}

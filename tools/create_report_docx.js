@@ -5,9 +5,11 @@ const root = path.resolve(__dirname, "..");
 const inputPath = path.join(root, "docs", "rapor.md");
 const outputPath = path.join(root, "docs", "rapor.docx");
 
+// Read the Markdown report once and convert it into a minimal DOCX package.
 const markdown = fs.readFileSync(inputPath, "utf8");
 
 function xmlEscape(value) {
+  // Escape XML entities before injecting text into the document body.
   return value
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -16,11 +18,13 @@ function xmlEscape(value) {
 }
 
 function paragraph(text, style) {
+  // Emit one Word paragraph at a time, optionally with a built-in style.
   const styleXml = style ? `<w:pPr><w:pStyle w:val="${style}"/></w:pPr>` : "";
   return `<w:p>${styleXml}<w:r><w:t xml:space="preserve">${xmlEscape(text)}</w:t></w:r></w:p>`;
 }
 
 function markdownToDocumentXml(source) {
+  // Translate a small Markdown subset into document paragraphs and headings.
   const lines = source.split(/\r?\n/);
   const body = [];
   let inCode = false;
@@ -84,6 +88,7 @@ const files = {
 };
 
 function makeCrcTable() {
+  // ZIP entries need a CRC32 checksum, so we precompute the lookup table.
   const table = [];
   for (let n = 0; n < 256; n++) {
     let c = n;
@@ -98,6 +103,7 @@ function makeCrcTable() {
 const crcTable = makeCrcTable();
 
 function crc32(buffer) {
+  // Standard CRC32 implementation for the ZIP container.
   let crc = 0xffffffff;
   for (const byte of buffer) {
     crc = crcTable[(crc ^ byte) & 0xff] ^ (crc >>> 8);
@@ -106,6 +112,7 @@ function crc32(buffer) {
 }
 
 function dosDateTime(date) {
+  // Encode the current time using the ZIP/DOS timestamp format.
   const year = Math.max(date.getFullYear(), 1980);
   const dosTime = (date.getHours() << 11) | (date.getMinutes() << 5) | Math.floor(date.getSeconds() / 2);
   const dosDate = ((year - 1980) << 9) | ((date.getMonth() + 1) << 5) | date.getDate();
@@ -113,18 +120,21 @@ function dosDateTime(date) {
 }
 
 function u16(value) {
+  // Serialize a 16-bit little-endian integer.
   const buffer = Buffer.alloc(2);
   buffer.writeUInt16LE(value);
   return buffer;
 }
 
 function u32(value) {
+  // Serialize a 32-bit little-endian integer.
   const buffer = Buffer.alloc(4);
   buffer.writeUInt32LE(value >>> 0);
   return buffer;
 }
 
 function createZip(entries) {
+  // Write a tiny ZIP archive without pulling in an external dependency.
   const localParts = [];
   const centralParts = [];
   let offset = 0;

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+"""Image loading, plate cropping, OCR preprocessing, and text normalization."""
+
 from itertools import combinations, product
 from pathlib import Path
 import re
@@ -15,9 +17,11 @@ except ImportError:
 
 
 PLATE_ALLOWED_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+# Turkish plates use a province code, letters, then digits.
 PLATE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 PLATE_DIGITS = "0123456789"
 
+# OCR commonly confuses visually similar symbols; these maps repair those cases.
 LETTER_FIXES = {
     "0": "O",
     "1": "I",
@@ -52,6 +56,7 @@ LETTER_CONFUSIONS = {
 
 
 def load_image(image_path: str | Path) -> np.ndarray:
+    # OpenCV is the lowest-common-denominator loader for the rest of the pipeline.
     path = Path(image_path)
     if not path.exists():
         raise FileNotFoundError(f"Gorsel bulunamadi: {path}")
@@ -63,6 +68,7 @@ def load_image(image_path: str | Path) -> np.ndarray:
 
 
 def crop_plate(image: np.ndarray, detection: PlateDetection, padding_ratio: float = 0.06) -> np.ndarray:
+    # Crop with a small margin so OCR keeps context around the plate border.
     height, width = image.shape[:2]
     x1, y1, x2, y2 = detection.xyxy
     box_width = max(x2 - x1, 1)
@@ -82,6 +88,7 @@ def build_ocr_variants(plate_image: np.ndarray) -> list[np.ndarray]:
     if plate_image.size == 0:
         return []
 
+    # Keep the raw crop and add a few alternative views that often help OCR.
     variants = [plate_image]
     blue_band_removed = remove_left_blue_band(plate_image)
     if blue_band_removed is not None:
@@ -104,6 +111,7 @@ def remove_left_blue_band(plate_image: np.ndarray) -> np.ndarray | None:
     hsv = cv2.cvtColor(plate_image[:, :search_width], cv2.COLOR_BGR2HSV)
     blue_mask = cv2.inRange(hsv, (90, 45, 30), (135, 255, 255))
     blue_ratio_by_column = (blue_mask > 0).mean(axis=0)
+    # Identify columns where the blue strip is strong enough to cut away safely.
     blue_columns = np.where(blue_ratio_by_column > 0.12)[0]
     if len(blue_columns) == 0:
         return None
@@ -117,6 +125,7 @@ def remove_left_blue_band(plate_image: np.ndarray) -> np.ndarray | None:
 
 
 def _build_single_ocr_variants(plate_image: np.ndarray) -> list[np.ndarray]:
+    # Scale first so OCR can resolve thin characters, then try several contrast options.
     gray = cv2.cvtColor(plate_image, cv2.COLOR_BGR2GRAY)
     gray = cv2.resize(gray, None, fx=2.0, fy=2.0, interpolation=cv2.INTER_CUBIC)
 
@@ -150,6 +159,7 @@ def normalize_turkish_plate(text: str) -> str:
         return ""
 
     candidates: list[tuple[int, str]] = []
+    # Try each legal plate shape because OCR may merge or split characters differently.
     for letter_count in range(1, 4):
         for digit_count in range(2, 5):
             if len(cleaned) != 2 + letter_count + digit_count:
@@ -187,6 +197,7 @@ def noisy_plate_candidates(text: str, max_deletions: int = 3) -> list[tuple[floa
     candidates: dict[str, float] = {}
     min_length = 5
     max_length = min(9, len(cleaned))
+    # Build candidate strings by deleting a few characters and re-coercing the shape.
     for target_length in range(min_length, max_length + 1):
         deletion_count = len(cleaned) - target_length
         if deletion_count > max_deletions:
@@ -205,6 +216,7 @@ def noisy_plate_candidates(text: str, max_deletions: int = 3) -> list[tuple[floa
 
 
 def is_valid_turkish_plate(text: str) -> bool:
+    # A plate is valid only if normalization leaves it unchanged.
     return normalize_turkish_plate(text) == re.sub(r"[^A-Z0-9]", "", text.upper())
 
 
@@ -215,6 +227,7 @@ def _add_noisy_candidate(
     digit_count: int,
     deletion_cost: float,
 ) -> None:
+    # The selected character must be compatible with the target slot, otherwise discard it.
     slots = ["digit", "digit"] + ["letter"] * letter_count + ["digit"] * digit_count
     option_groups = [_slot_options(char, slot) for char, slot in zip(selected, slots)]
     if any(not group for group in option_groups):
@@ -242,6 +255,7 @@ def _add_noisy_candidate(
 
 
 def _slot_options(char: str, slot: str) -> list[tuple[str, float, bool]]:
+    # Each slot offers exact matches first, then progressively weaker repairs.
     if slot == "digit":
         if char in PLATE_DIGITS:
             return [(char, 0.0, False)]
@@ -267,6 +281,7 @@ def _coerce_section(
     allowed_chars: str,
     replacements: dict[str, str],
 ) -> tuple[str, int] | None:
+    # Convert a section by applying only allowed substitutions; otherwise reject it.
     output: list[str] = []
     cost = 0
     for char in section:
@@ -282,6 +297,7 @@ def _coerce_section(
 
 
 def plate_status(text: str, ocr_confidence: float, min_ocr_confidence: float) -> str:
+    # Status is derived from whether text exists and whether confidence clears the threshold.
     if not text:
         return "ocr_okunamadi"
     if ocr_confidence < min_ocr_confidence:
