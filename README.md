@@ -19,7 +19,9 @@ Bu proje, arac gorsellerindeki plakayi YOLO tabanli modelle tespit eder ve plaka
 |-- run_all_images.py         # Tum gorselleri isleyen ana script
 `-- requirements.txt
 ```
-
+## Kullanılan Veri Setleri
+Plaka Tespit Modeli İçin: https://www.kaggle.com/code/mercantl/turkish-lisence-plate-yolov8/input
+Plaka Okuma Modeli İçin: https://github.com/ramajoballester/UC3M-LP
 ## Kurulum
 
 Python kurulu bir ortamda:
