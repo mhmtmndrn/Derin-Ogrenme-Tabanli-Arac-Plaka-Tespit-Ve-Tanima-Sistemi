@@ -11,9 +11,8 @@ Bu proje, arac gorsellerindeki plakayi YOLO tabanli modelle tespit eder ve plaka
 |-- models/
 |   |-- plate_detector.pt     # Plaka tespit modeli
 |   `-- plate_reader.pt       # Karakter/plaka okuma modeli
-|-- notebooks/                # Egitim ve demo notebooklari
 |-- outputs/                  # Program ciktilari
-|-- samples/                  # Tek gorsel demo ornegi
+|-- samples/                  # Örnek araç görselleri
 |-- src/                      # Tespit, OCR, on isleme ve gorsellestirme kodlari
 |-- tests/                    # Birim testleri
 |-- run_all_images.py         # Tum gorselleri isleyen ana script
@@ -22,20 +21,22 @@ Bu proje, arac gorsellerindeki plakayi YOLO tabanli modelle tespit eder ve plaka
 ## Kullanılan Veri Setleri
 Plaka Tespit Modeli İçin: https://www.kaggle.com/code/mercantl/turkish-lisence-plate-yolov8/input
 Plaka Okuma Modeli İçin: https://github.com/ramajoballester/UC3M-LP
+
 ## Kurulum
-
-Python kurulu bir ortamda:
-
+Powershell uygulamasını açın.Aşağıdaki komutları girin.
 ```powershell
+git clone https://github.com/mhmtmndrn/Derin-Ogrenme-Tabanli-Arac-Plaka-Tespit-Ve-Tanima-Sistemi.git
+cd Derin-Ogrenme-Tabanli-Arac-Plaka-Tespit-Ve-Tanima-Sistemi
 python -m venv .venv
 .\.venv\Scripts\activate
 pip install -r requirements.txt
 python app.py
 ```
+Bu komutları girdikten sonra tarayıcı üzerinden " http://127.0.0.1:7860/ " adresine gidebilirsiniz.
 
-## Toplu Calistirma
+## Toplu Çalıştırma
 
-Varsayilan klasorler ve modellerle tum gorselleri islemek icin:
+Tüm görsellerde denemek için kurulumu yaptıktan sonra aşağıdaki komutu girin.
 
 ```powershell
 python run_all_images.py
